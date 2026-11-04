@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configSchema } from './config/config.schema.js';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './modules/health/health.module.js';
+import { PrismaModule } from './database/prisma.module.js';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { HealthModule } from './modules/health/health.module.js';
         };
       },
     }),
+    PrismaModule,
     HealthModule,
   ],
   controllers: [],
