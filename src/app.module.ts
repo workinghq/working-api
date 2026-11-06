@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './modules/health/health.module.js';
 import { PrismaModule } from './database/prisma.module.js';
 import { UsersModule } from './modules/users/users.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UsersModule } from './modules/users/users.module.js';
     PrismaModule,
     HealthModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
