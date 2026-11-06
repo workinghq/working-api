@@ -6,6 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
+import { StandardSchemaValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -16,6 +17,7 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
+  app.useGlobalPipes(new StandardSchemaValidationPipe());
 
   const config = app.get(ConfigService);
 
