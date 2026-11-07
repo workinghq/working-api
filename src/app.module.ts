@@ -6,6 +6,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { PrismaModule } from './database/prisma.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { AuthenticationModule } from '@nestjs/authentication';
 
 @Module({
   imports: [
@@ -32,6 +33,12 @@ import { AuthModule } from './modules/auth/auth.module.js';
                 },
           },
         };
+      },
+    }),
+    AuthenticationModule.forRoot({
+      session: {
+        absoluteTtl: '14d',
+        idleTtl: '3d',
       },
     }),
     PrismaModule,
