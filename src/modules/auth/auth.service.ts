@@ -13,6 +13,7 @@ import {
   USERS_REPOSITORY,
   type UsersRepository,
 } from '../users/repositories/users.repository.js';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class AuthService {
@@ -20,11 +21,14 @@ export class AuthService {
     @Inject(USERS_REPOSITORY)
     private readonly usersRepository: UsersRepository,
     private readonly hashingService: HashingService,
+    @InjectPinoLogger(AuthService.name)
+    private readonly logger: PinoLogger,
   ) {}
 
   async register(dto: RegisterUserDto): Promise<UserResponseDto> {
     const existingUser = await this.usersRepository.findByEmail(dto.email);
     if (existingUser) {
+      this.logger.warn('User registration failed: email already taken');
       throw new ConflictException('Email already taken');
     }
 
@@ -33,6 +37,8 @@ export class AuthService {
       email: dto.email,
       passwordHash: await this.hashingService.hash(dto.password),
     });
+
+    this.logger.info({ userId: user.id }, 'User registered');
 
     return UserMapper.toResponse(user);
   }
@@ -45,6 +51,7 @@ export class AuthService {
     );
 
     if (!user || !valid) {
+      this.logger.warn('User login faield: invalid credentals');
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -53,8 +60,11 @@ export class AuthService {
         user.id,
         await this.hashingService.hash(dto.password),
       );
+
+      this.logger.debug('User password hash updated');
     }
 
+    this.logger.info({ userId: user.id }, 'User logged in');
     return UserMapper.toResponse(user);
   }
 }

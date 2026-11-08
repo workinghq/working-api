@@ -7,6 +7,7 @@ import { PrismaModule } from './database/prisma.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AuthenticationModule } from '@nestjs/authentication';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 
 @Module({
   imports: [
@@ -21,6 +22,19 @@ import { AuthenticationModule } from '@nestjs/authentication';
           pinoHttp: {
             level: configService.get('LOG_LEVEL'),
             autoLogging: true,
+
+            serializers: {
+              req: (req: FastifyRequest) => ({
+                id: req.id,
+                method: req.method,
+                url: req.url,
+                query: req.query,
+              }),
+              res: (res: FastifyReply) => ({
+                statusCode: res.statusCode,
+              }),
+            },
+
             transport: isProd
               ? undefined
               : {
