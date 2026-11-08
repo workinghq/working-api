@@ -6,6 +6,7 @@ import {
 } from './dto/register-user.dto.js';
 import { type LoginDto, loginSchema } from './dto/login.dto.js';
 import { Public, SignInService } from '@nestjs/authentication';
+import { Throttle } from '@nestjs/throttler';
 
 @Public()
 @Controller('auth')
@@ -15,6 +16,12 @@ export class AuthController {
     private readonly signInService: SignInService,
   ) {}
 
+  @Throttle({
+    default: {
+      limit: 3,
+      ttl: 60000,
+    },
+  })
   @Post('register')
   async register(
     @Body({ schema: registerUserSchema }) registerUserDto: RegisterUserDto,
@@ -22,6 +29,12 @@ export class AuthController {
     return this.authService.register(registerUserDto);
   }
 
+  @Throttle({
+    default: {
+      limit: 5,
+      ttl: 60000,
+    },
+  })
   @Post('login')
   @HttpCode(200)
   async login(@Body({ schema: loginSchema }) loginDto: LoginDto) {

@@ -47,6 +47,6 @@ describe('PrismaSessionStore', () => {
     maxPending: 3,
     contracts: ['sessions'],
   })) {
-    it(c.name, c.run);
+    it(c.name, c.run.bind(c));
   }
 });
