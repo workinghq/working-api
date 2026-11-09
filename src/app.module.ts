@@ -6,6 +6,10 @@ import { HealthModule } from './modules/health/health.module.js';
 import { PrismaModule } from './database/prisma.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { AuthenticationModule } from '@nestjs/authentication';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -20,6 +24,19 @@ import { AuthModule } from './modules/auth/auth.module.js';
           pinoHttp: {
             level: configService.get('LOG_LEVEL'),
             autoLogging: true,
+
+            serializers: {
+              req: (req: FastifyRequest) => ({
+                id: req.id,
+                method: req.method,
+                url: req.url,
+                query: req.query,
+              }),
+              res: (res: FastifyReply) => ({
+                statusCode: res.statusCode,
+              }),
+            },
+
             transport: isProd
               ? undefined
               : {
@@ -34,12 +51,24 @@ import { AuthModule } from './modules/auth/auth.module.js';
         };
       },
     }),
+    AuthenticationModule.forRoot({
+      session: {
+        absoluteTtl: '14d',
+        idleTtl: '3d',
+      },
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        { name: 'short', ttl: 1000, limit: 10 },
+        { name: 'default', ttl: 60000, limit: 100 },
+      ],
+    }),
     PrismaModule,
     HealthModule,
     UsersModule,
     AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

@@ -19,4 +19,22 @@ export class PrismaUsersRepository implements UsersRepository {
 
     return user ? UserMapper.toEntity(user) : null;
   }
+
+  async findById(id: string): Promise<User | null> {
+    const user = await this.prismaService.user.findUnique({ where: { id } });
+
+    return user ? UserMapper.toEntity(user) : null;
+  }
+
+  async updatePasswordHash(
+    userId: string,
+    passwordHash: string,
+  ): Promise<User | null> {
+    const user = await this.prismaService.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return user ? UserMapper.toEntity(user) : null;
+  }
 }
