@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices"],
+  "extends": ["config:recommended"],
 
   "labels": ["dependencies"],
   "baseBranchPatterns": ["develop"],
@@ -10,9 +10,7 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["patch", "minor"],
-      "automerge": true,
-      "matchCurrentVersion": "!/^0\\./",
-      "groupName": "patch and minor dependencies"
+      "automerge": true
     }
   ]
 }
