@@ -10,6 +10,7 @@ import { AuthenticationModule } from '@nestjs/authentication';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { WorkspacesModule } from './modules/workspaces/workspaces.module.js';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { APP_GUARD } from '@nestjs/core';
     HealthModule,
     UsersModule,
     AuthModule,
+    WorkspacesModule,
   ],
   controllers: [],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
