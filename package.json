@@ -62,7 +62,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "oxlint": "^1.90.0",
-    "oxlint-tsgolint": "^7.0.2005",
+    "oxlint-tsgolint": "^7.0.2007",
     "pino-pretty": "^13.2.0",
     "prettier": "^3.10.1",
     "prisma": "^7.10.1",
