@@ -1,4 +1,6 @@
 import * as z from 'zod';
 import { createWorkspaceSchema } from './create-workspace.dto.js';
 
-export type UpdateWorkspaceDto = Partial<z.infer<typeof createWorkspaceSchema>>;
+export const updateWorkspaceSchema = createWorkspaceSchema.partial();
+
+export type UpdateWorkspaceDto = z.infer<typeof updateWorkspaceSchema>;

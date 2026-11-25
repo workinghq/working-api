@@ -1,45 +1,59 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
+import {
+  createWorkspaceSchema,
+  type CreateWorkspaceDto,
+} from './dto/create-workspace.dto.js';
+import {
+  updateWorkspaceSchema,
+  type UpdateWorkspaceDto,
+} from './dto/update-workspace.dto.js';
+import { WorkspaceResponseDto } from './dto/workspace-response.dto.js';
 import { WorkspacesService } from './workspaces.service.js';
-import { type CreateWorkspaceDto } from './dto/create-workspace.dto.js';
-import { type UpdateWorkspaceDto } from './dto/update-workspace.dto.js';
 
 @Controller('workspaces')
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
   @Post()
-  create(@Body() createWorkspaceDto: CreateWorkspaceDto) {
+  create(
+    @Body({ schema: createWorkspaceSchema })
+    createWorkspaceDto: CreateWorkspaceDto,
+  ): Promise<WorkspaceResponseDto> {
     return this.workspacesService.create(createWorkspaceDto);
   }
 
   @Get()
-  findAll() {
+  findAll(): Promise<WorkspaceResponseDto[]> {
     return this.workspacesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.workspacesService.findOne(+id);
+  findOne(@Param('id') id: string): Promise<WorkspaceResponseDto> {
+    return this.workspacesService.findOne(id);
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateWorkspaceDto: UpdateWorkspaceDto,
-  ) {
-    return this.workspacesService.update(+id, updateWorkspaceDto);
+    @Body({ schema: updateWorkspaceSchema })
+    updateWorkspaceDto: UpdateWorkspaceDto,
+  ): Promise<WorkspaceResponseDto> {
+    return this.workspacesService.update(id, updateWorkspaceDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.workspacesService.remove(+id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Param('id') id: string): Promise<void> {
+    return this.workspacesService.remove(id);
   }
 }
