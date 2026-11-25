@@ -6,5 +6,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    reporters:
+      process.env.CI === 'true' ? ['default', 'github-actions'] : ['default'],
   },
 });
