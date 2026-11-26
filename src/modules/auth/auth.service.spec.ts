@@ -4,6 +4,7 @@ import { HashingService } from '../../common/services/hashing.service.js';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { USERS_REPOSITORY } from '../users/repositories/users.repository.js';
 import { getLoggerToken } from 'nestjs-pino';
+import { UniqueConstraintError } from '../../common/errors/unique-constraint.error.js';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -61,7 +62,7 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should fail if the email is already taken', async () => {
-      usersRepository.findByEmail.mockResolvedValue(mockUser);
+      usersRepository.create.mockRejectedValue(new UniqueConstraintError());
 
       await expect(authService.register(registerDto)).rejects.toThrow(
         ConflictException,
@@ -69,15 +70,16 @@ describe('AuthService', () => {
     });
 
     it('should register a user successfully', async () => {
-      usersRepository.findByEmail.mockResolvedValue(null);
       hashService.hash.mockResolvedValue('hashed-password');
       usersRepository.create.mockResolvedValue(mockUser);
 
       await authService.register(registerDto);
 
-      expect(usersRepository.findByEmail).toHaveBeenCalledWith(
-        'user@email.com',
-      );
+      expect(usersRepository.create).toHaveBeenCalledWith({
+        name: registerDto.name,
+        email: registerDto.email,
+        passwordHash: 'hashed-password',
+      });
     });
   });
 
