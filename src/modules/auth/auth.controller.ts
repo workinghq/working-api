@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   HttpCode,
+  HttpStatus,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import {
 import { type LoginDto, loginSchema } from './dto/login.dto.js';
 import { CurrentUser, Public, SignInService } from '@nestjs/authentication';
 import { Throttle } from '@nestjs/throttler';
+import { UserResponseDto } from '../users/dto/user-response.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +33,7 @@ export class AuthController {
   @Post('register')
   async register(
     @Body({ schema: registerUserSchema }) registerUserDto: RegisterUserDto,
-  ) {
+  ): Promise<UserResponseDto> {
     return this.authService.register(registerUserDto);
   }
 
@@ -43,8 +45,10 @@ export class AuthController {
     },
   })
   @Post('login')
-  @HttpCode(200)
-  async login(@Body({ schema: loginSchema }) loginDto: LoginDto) {
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body({ schema: loginSchema }) loginDto: LoginDto,
+  ): Promise<UserResponseDto> {
     const user = await this.authService.login(loginDto);
     await this.signInService.signIn(user.id, { method: 'password' });
 
@@ -53,15 +57,15 @@ export class AuthController {
 
   @Public()
   @Post('logout')
-  @HttpCode(204)
-  async logout() {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logout(): Promise<void> {
     const logout = await this.signInService.signOut();
     if (!logout) throw new UnauthorizedException();
   }
 
   @Post('logout-all')
-  @HttpCode(204)
-  async logoutAll(@CurrentUser('id') userId: string) {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logoutAll(@CurrentUser('id') userId: string): Promise<void> {
     await this.signInService.signOutEverywhere(userId);
   }
 }

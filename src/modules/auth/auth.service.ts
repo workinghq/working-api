@@ -47,7 +47,7 @@ export class AuthService {
     }
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<UserResponseDto> {
     const user = await this.usersRepository.findByEmail(dto.email);
     const valid = await this.hashingService.compare(
       dto.password,
