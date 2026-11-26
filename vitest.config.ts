@@ -8,5 +8,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    reporters:
+      process.env.CI === 'true' ? ['default', 'github-actions'] : ['default'],
   },
 });
