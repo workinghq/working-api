@@ -22,7 +22,17 @@ export class WorkspacesService {
   private async findOneOrFail(id: string): Promise<Workspace> {
     this.logger.debug({ workspaceId: id }, 'Looking up workspace by id');
 
-    const workspace = await this.workspaceRepository.findById(id);
+    let workspace: Workspace | null;
+
+    try {
+      workspace = await this.workspaceRepository.findById(id);
+    } catch (error) {
+      this.logger.error(
+        { err: error, workspaceId: id },
+        'Failed to look up workspace by id',
+      );
+      throw error;
+    }
 
     if (!workspace) {
       this.logger.warn(
@@ -61,11 +71,18 @@ export class WorkspacesService {
   async findAll(): Promise<WorkspaceResponseDto[]> {
     this.logger.debug('Listing workspaces');
 
-    const workspaces = await this.workspaceRepository.findAll();
+    try {
+      const workspaces = await this.workspaceRepository.findAll();
 
-    this.logger.info({ count: workspaces.length }, 'Workspaces listed');
+      this.logger.info({ count: workspaces.length }, 'Workspaces listed');
 
-    return workspaces.map((workspace) => WorkspaceMapper.toResponse(workspace));
+      return workspaces.map((workspace) =>
+        WorkspaceMapper.toResponse(workspace),
+      );
+    } catch (error) {
+      this.logger.error({ err: error }, 'Failed to list workspaces');
+      throw error;
+    }
   }
 
   async findOne(id: string): Promise<WorkspaceResponseDto> {
@@ -90,8 +107,7 @@ export class WorkspacesService {
       { workspaceId: id, payload: data },
       'Workspace update payload',
     );
-
-    await this.findOneOrFail(id);
+    const workspace = await this.findOneOrFail(id);
 
     const hasChanges = Object.values(data).some((value) => value !== undefined);
 
@@ -100,17 +116,14 @@ export class WorkspacesService {
         { workspaceId: id },
         'Workspace update requested with no changes',
       );
+
+      return WorkspaceMapper.toResponse(workspace);
     }
 
     try {
       const workspaceUpdated = await this.workspaceRepository.update(id, data);
 
       if (!workspaceUpdated) {
-        this.logger.error(
-          { workspaceId: id },
-          'Workspace disappeared during update',
-        );
-
         throw new NotFoundException('Workspace not found');
       }
 
@@ -129,8 +142,6 @@ export class WorkspacesService {
 
   async remove(id: string): Promise<void> {
     this.logger.info({ workspaceId: id }, 'Removing workspace');
-
-    await this.findOneOrFail(id);
 
     try {
       const deleted = await this.workspaceRepository.delete(id);
