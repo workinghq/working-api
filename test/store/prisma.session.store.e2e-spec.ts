@@ -11,8 +11,7 @@ class CappedStore extends PrismaSessionStore {
   protected override readonly maxPending = 3;
 }
 
-async function emptyStore(prismaService: PrismaService) {
-  await prismaService.session.deleteMany();
+function emptyStore(prismaService: PrismaService) {
   const store = new CappedStore(prismaService, new AuthenticationStorage());
 
   return { sessions: store };
@@ -36,10 +35,6 @@ describe('PrismaSessionStore', () => {
     }).compile();
 
     prisma = module.get(PrismaService);
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
   });
 
   for (const c of authenticationStoreContract(() => emptyStore(prisma), {
