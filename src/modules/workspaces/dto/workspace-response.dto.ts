@@ -3,4 +3,5 @@ export type WorkspaceResponseDto = {
   name: string;
   description?: string;
   createdAt: Date;
+  updatedAt: Date;
 };

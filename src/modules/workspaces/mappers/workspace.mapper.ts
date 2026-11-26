@@ -9,6 +9,7 @@ export class WorkspaceMapper {
       data.name,
       data.description ?? undefined,
       data.createdAt,
+      data.updatedAt,
     );
   }
 
@@ -18,6 +19,7 @@ export class WorkspaceMapper {
       name: workspace.name,
       description: workspace.description,
       createdAt: workspace.createdAt,
+      updatedAt: workspace.updatedAt,
     };
   }
 
@@ -27,6 +29,7 @@ export class WorkspaceMapper {
       name: workspace.name,
       description: workspace.description,
       createdAt: workspace.createdAt,
+      updatedAt: workspace.updatedAt,
     };
   }
 }
