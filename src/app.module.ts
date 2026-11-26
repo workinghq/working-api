@@ -57,11 +57,17 @@ import { APP_GUARD } from '@nestjs/core';
         idleTtl: '3d',
       },
     }),
-    ThrottlerModule.forRoot({
-      throttlers: [
-        { name: 'short', ttl: 1000, limit: 10 },
-        { name: 'default', ttl: 60000, limit: 100 },
-      ],
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          throttlers: [
+            { name: 'short', ttl: 1000, limit: 10 },
+            { name: 'default', ttl: 60000, limit: 100 },
+          ],
+          skipIf: () => configService.get('NODE_ENV') === 'test',
+        };
+      },
     }),
     PrismaModule,
     HealthModule,
