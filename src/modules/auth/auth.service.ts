@@ -14,6 +14,7 @@ import {
   type UsersRepository,
 } from '../users/repositories/users.repository.js';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { UniqueConstraintError } from '../../common/errors/unique-constraint.error.js';
 
 @Injectable()
 export class AuthService {
@@ -26,21 +27,24 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterUserDto): Promise<UserResponseDto> {
-    const existingUser = await this.usersRepository.findByEmail(dto.email);
-    if (existingUser) {
-      this.logger.warn('User registration failed: email already taken');
-      throw new ConflictException('Email already taken');
+    try {
+      const user = await this.usersRepository.create({
+        name: dto.name,
+        email: dto.email,
+        passwordHash: await this.hashingService.hash(dto.password),
+      });
+
+      this.logger.info({ userId: user.id }, 'User registered');
+
+      return UserMapper.toResponse(user);
+    } catch (error) {
+      if (error instanceof UniqueConstraintError) {
+        this.logger.warn('User registration failed: email already taken');
+        throw new ConflictException('Email already taken');
+      }
+
+      throw error;
     }
-
-    const user = await this.usersRepository.create({
-      name: dto.name,
-      email: dto.email,
-      passwordHash: await this.hashingService.hash(dto.password),
-    });
-
-    this.logger.info({ userId: user.id }, 'User registered');
-
-    return UserMapper.toResponse(user);
   }
 
   async login(dto: LoginDto) {

@@ -2,16 +2,34 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service.js';
 import { User } from '../entities/user.entity.js';
 import { UserMapper } from '../mappers/user.mapper.js';
-import { CreateUserInput, UsersRepository } from './users.repository.js';
+import {
+  CreateUserInput,
+  UpdateUserInput,
+  UsersRepository,
+} from './users.repository.js';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { UniqueConstraintError } from '../../../common/errors/unique-constraint.error.js';
 
 @Injectable()
 export class PrismaUsersRepository implements UsersRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(data: CreateUserInput): Promise<User> {
-    const userCreated = await this.prismaService.user.create({ data });
+    try {
+      const userCreated = await this.prismaService.user.create({ data });
 
-    return UserMapper.toEntity(userCreated);
+      return UserMapper.toEntity(userCreated);
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        console.dir(error.batchRequestIdx);
+        throw new UniqueConstraintError();
+      }
+
+      throw error;
+    }
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -27,14 +45,51 @@ export class PrismaUsersRepository implements UsersRepository {
   }
 
   async updatePasswordHash(
-    userId: string,
+    id: string,
     passwordHash: string,
   ): Promise<User | null> {
-    const user = await this.prismaService.user.update({
-      where: { id: userId },
-      data: { passwordHash },
-    });
+    try {
+      const user = await this.prismaService.user.update({
+        where: { id },
+        data: { passwordHash },
+      });
 
-    return user ? UserMapper.toEntity(user) : null;
+      return UserMapper.toEntity(user);
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  async update(id: string, data: UpdateUserInput): Promise<User | null> {
+    try {
+      const user = await this.prismaService.user.update({
+        where: { id },
+        data,
+      });
+      return UserMapper.toEntity(user);
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        return null;
+      }
+
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new UniqueConstraintError();
+      }
+
+      throw error;
+    }
   }
 }

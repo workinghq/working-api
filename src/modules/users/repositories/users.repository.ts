@@ -8,12 +8,15 @@ export type CreateUserInput = {
   passwordHash: string;
 };
 
+export type UpdateUserInput = {
+  name?: string;
+  email?: string;
+};
+
 export interface UsersRepository {
-  create(user: CreateUserInput): Promise<User>;
+  create(data: CreateUserInput): Promise<User>;
   findByEmail(email: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
-  updatePasswordHash(
-    userId: string,
-    passwordHash: string,
-  ): Promise<User | null>;
+  updatePasswordHash(id: string, passwordHash: string): Promise<User | null>;
+  update(id: string, data: UpdateUserInput): Promise<User | null>;
 }
