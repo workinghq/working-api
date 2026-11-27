@@ -11,6 +11,7 @@ model User {
   id String @default(cuid()) @id
   name String
   email String @unique
+  emailVerified Boolean @default(false)
   passwordHash String
   avatarUrl String?
   createdAt DateTime @default(now())
@@ -43,4 +44,16 @@ model Workspace {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(3)
 
   @@map("workspaces")
+}
+model EmailToken {
+  id String @id
+  userId String
+  email String
+  purpose String
+  fingerprint String?
+  createdAt DateTime
+  expiresAt DateTime
+
+  @@index([expiresAt])
+  @@index([userId, purpose])
 }
