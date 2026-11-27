@@ -7,14 +7,12 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { PrismaHealthIndicator } from '@nestjs/terminus';
-import { Logger } from '@nestjs/common';
 
 describe('Health', () => {
   let app: NestFastifyApplication;
   let prismaHealthIndicator: PrismaHealthIndicator;
 
   beforeAll(async () => {
-    Logger.overrideLogger(false);
     const module = await Test.createTestingModule({
       imports: [AppModule],
     })
