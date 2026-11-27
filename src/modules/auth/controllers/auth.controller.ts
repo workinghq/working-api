@@ -6,21 +6,27 @@ import {
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthService } from './auth.service.js';
+import { AuthService } from '../auth.service.js';
 import {
   type RegisterUserDto,
   registerUserSchema,
-} from './dto/register-user.dto.js';
-import { type LoginDto, loginSchema } from './dto/login.dto.js';
-import { CurrentUser, Public, SignInService } from '@nestjs/authentication';
+} from '../dto/register-user.dto.js';
+import { type LoginDto, loginSchema } from '../dto/login.dto.js';
+import {
+  CurrentUser,
+  EmailVerificationService,
+  Public,
+  SignInService,
+} from '@nestjs/authentication';
 import { Throttle } from '@nestjs/throttler';
-import { UserResponseDto } from '../users/dto/user-response.dto.js';
+import { UserResponseDto } from '../../users/dto/user-response.dto.js';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly signInService: SignInService,
+    private readonly emailVerificationService: EmailVerificationService,
   ) {}
 
   @Public()
@@ -34,7 +40,11 @@ export class AuthController {
   async register(
     @Body({ schema: registerUserSchema }) registerUserDto: RegisterUserDto,
   ): Promise<UserResponseDto> {
-    return this.authService.register(registerUserDto);
+    const user = await this.authService.register(registerUserDto);
+    await this.signInService.signIn(user.id, { method: 'password' });
+    await this.emailVerificationService.send(user);
+
+    return user;
   }
 
   @Public()

@@ -92,4 +92,24 @@ export class PrismaUsersRepository implements UsersRepository {
       throw error;
     }
   }
+
+  async markEmailVerified(id: string, email: string): Promise<boolean> {
+    try {
+      await this.prismaService.user.update({
+        where: { id, email },
+        data: { emailVerified: true },
+      });
+
+      return true;
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        return false;
+      }
+
+      throw error;
+    }
+  }
 }

@@ -52,23 +52,27 @@ import { WorkspacesModule } from './modules/workspaces/workspaces.module.js';
         };
       },
     }),
-    AuthenticationModule.forRoot({
-      session: {
-        absoluteTtl: '14d',
-        idleTtl: '3d',
-      },
+    AuthenticationModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        session: {
+          absoluteTtl: '14d',
+          idleTtl: '3d',
+        },
+        emailVerification: {
+          url: `${configService.get('WEB_APP_URL')}/email-verification`,
+        },
+      }),
     }),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return {
-          throttlers: [
-            { name: 'short', ttl: 1000, limit: 10 },
-            { name: 'default', ttl: 60000, limit: 100 },
-          ],
-          skipIf: () => configService.get('NODE_ENV') === 'test',
-        };
-      },
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [
+          { name: 'short', ttl: 1000, limit: 10 },
+          { name: 'default', ttl: 60000, limit: 100 },
+        ],
+        skipIf: () => configService.get('NODE_ENV') === 'test',
+      }),
     }),
     PrismaModule,
     HealthModule,

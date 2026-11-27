@@ -19,4 +19,5 @@ export interface UsersRepository {
   findById(id: string): Promise<User | null>;
   updatePasswordHash(id: string, passwordHash: string): Promise<User | null>;
   update(id: string, data: UpdateUserInput): Promise<User | null>;
+  markEmailVerified(id: string, email: string): Promise<boolean>;
 }
