@@ -34,3 +34,13 @@ enum SessionMfa {
   pending
   verified
 }
+
+model Workspace {
+  id String @default(cuid()) @id
+  name String @db.VarChar(255)
+  description String? @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(3)
+
+  @@map("workspaces")
+}
