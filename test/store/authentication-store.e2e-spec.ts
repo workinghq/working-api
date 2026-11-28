@@ -6,15 +6,25 @@ import { PrismaModule } from '../../src/database/prisma.module.js';
 import { authenticationStoreContract } from '@nestjs/authentication/testing';
 import { ConfigModule } from '@nestjs/config';
 import { testConfig } from '../utils/test-config.js';
+import { PrismaEmailTokenStore } from '../../src/modules/auth/stores/prisma.email-token.store.js';
 
-class CappedStore extends PrismaSessionStore {
+class CappedSessionStore extends PrismaSessionStore {
   protected override readonly maxPending = 3;
 }
 
-function emptyStore(prismaService: PrismaService) {
-  const store = new CappedStore(prismaService, new AuthenticationStorage());
+class CappedEmailTokenStore extends PrismaEmailTokenStore {
+  protected override readonly maxPending = 3;
+}
 
-  return { sessions: store };
+async function emptyStore(prismaService: PrismaService) {
+  await prismaService.emailToken.deleteMany();
+  await prismaService.session.deleteMany();
+
+  const authStorage = new AuthenticationStorage();
+  const sessionsStore = new CappedSessionStore(prismaService, authStorage);
+  const emailTokenStore = new CappedEmailTokenStore(prismaService, authStorage);
+
+  return { sessions: sessionsStore, emailTokens: emailTokenStore };
 }
 
 describe('PrismaSessionStore', () => {
@@ -26,9 +36,15 @@ describe('PrismaSessionStore', () => {
       providers: [
         AuthenticationStorage,
         {
-          provide: CappedStore,
+          provide: CappedSessionStore,
           useFactory: (prisma: PrismaService, storage: AuthenticationStorage) =>
-            new CappedStore(prisma, storage),
+            new CappedSessionStore(prisma, storage),
+          inject: [PrismaService, AuthenticationStorage],
+        },
+        {
+          provide: CappedEmailTokenStore,
+          useFactory: (prisma: PrismaService, storage: AuthenticationStorage) =>
+            new CappedEmailTokenStore(prisma, storage),
           inject: [PrismaService, AuthenticationStorage],
         },
       ],
@@ -38,9 +54,9 @@ describe('PrismaSessionStore', () => {
   });
 
   for (const c of authenticationStoreContract(() => emptyStore(prisma), {
-    concurrent: true,
+    concurrent: false,
     maxPending: 3,
-    contracts: ['sessions'],
+    contracts: ['sessions', 'emailTokens'],
   })) {
     it(c.name, c.run.bind(c));
   }

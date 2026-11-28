@@ -115,7 +115,7 @@ describe('Users', () => {
         method: 'PATCH',
         url: '/users/me/password',
         cookies: [authCookie],
-        body: { password: 'new-Strong-pass' },
+        body: { currentPassword: 'password', newPassword: 'new-password' },
       });
 
       expect(response.statusCode).toBe(204);

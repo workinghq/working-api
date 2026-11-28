@@ -9,4 +9,5 @@ export const configSchema = z.object({
   LOG_LEVEL: z.enum(logLevel).default('info'),
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.url(),
+  WEB_APP_URL: z.url().optional(),
 });

@@ -8,6 +8,6 @@ export default defineConfig({
     include: ['**/*.e2e-spec.ts'],
     reporters:
       process.env.CI === 'true' ? ['default', 'github-actions'] : ['default'],
-    globalSetup: './test/setup.ts',
+    fileParallelism: false,
   },
 });
